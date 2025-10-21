@@ -3,7 +3,6 @@ from enum import Enum
 from datetime import datetime
 from sqlalchemy import Column, String, Boolean, DateTime, Index, Enum
 from sqlalchemy.orm import relationship
-from app.models.base import BaseEntity
 
 
 class GitAuth(BaseEntity):
@@ -15,6 +14,8 @@ class GitAuth(BaseEntity):
     provider = Column(String(20), nullable=False)
     token = Column(String(500), nullable=False)  # 访问令牌（加密存储）
     is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
 
     # 创建复合索引
     __table_args__ = (
