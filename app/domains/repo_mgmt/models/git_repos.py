@@ -24,7 +24,7 @@ class RepoClassify:
     Documentation = "Documentation"
 
 
-class RepoRecord(Base):
+class RepoRecord():
     """仓库模型"""
     __tablename__ = "repo_records"
     

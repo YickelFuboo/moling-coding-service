@@ -4,14 +4,14 @@ from datetime import datetime
 from typing import List, Optional
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.git_auth_mgmt import GitAuth
+from ..models.git_auths import GitAuth
 
 
 class GitAuthService:
     """Git认证信息服务"""
         
     @staticmethod
-    async def save_git_auth(session: AsyncSession, user_id: str, provider: str, token: str) -> bool:
+    async def save_git_auth(session: AsyncSession, user_id: str, provider: str, access_token: str) -> bool:
         """保存Git认证信息"""
         try:
             # 检查是否已存在
@@ -23,22 +23,21 @@ class GitAuthService:
                     update(GitAuth)
                     .where(GitAuth.id == existing_auth.id)
                     .values(
-                        token=token,
+                        access_token=access_token,
                         updated_at=datetime.utcnow()
                     )
                 )
                 await session.commit()
                 await session.refresh(existing_auth)
                 logging.info(f"更新用户{user_id}的{provider}认证信息")
-                return existing_auth
+                return existing_auth    
             else:
                 # 创建新记录
                 git_auth = GitAuth(
                     id=str(uuid.uuid4()),
                     user_id=user_id,
                     provider=provider,
-                    username=None,  # 不保存用户名
-                    token=token,
+                    access_token=access_token,
                     is_active=True,
                     created_at=datetime.utcnow(),
                     updated_at=datetime.utcnow()

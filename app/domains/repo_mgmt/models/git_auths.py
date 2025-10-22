@@ -5,15 +5,17 @@ from sqlalchemy import Column, String, Boolean, DateTime, Index, Enum
 from sqlalchemy.orm import relationship
 
 
-class GitAuth(BaseEntity):
+class GitAuth():
     """用户Git认证信息模型"""
     __tablename__ = "git_auths"
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String(36), nullable=False, index=True)
     provider = Column(String(20), nullable=False)
-    token = Column(String(500), nullable=False)  # 访问令牌（加密存储）
+    access_token = Column(String(500), nullable=False)  # 访问令牌（加密存储）
+    
     is_active = Column(Boolean, default=True)
+
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
 

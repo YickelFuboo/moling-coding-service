@@ -2,8 +2,8 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.infrastructure.database import get_db
-from app.schemes.git_auth_mgmt import GitAuthResponse, GitAuthListResponse, GitAuthProvider
-from app.services.git_auth_mgmt import GitAuthService
+from app.domains.repo_mgmt.schemes.git_auth_mgmt import GitAuthResponse, GitAuthListResponse, GitAuthProvider
+from app.domains.repo_mgmt.services.git_auth_mgmt import GitAuthService
 
 
 router = APIRouter(prefix="/api/git_auth",tags=["Git仓认证管理"])
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/api/git_auth",tags=["Git仓认证管理"])
 async def save_git_auth(
     provider: str,
     user_id: str,
-    token: str,
+    access_token: str,
     db: AsyncSession = Depends(get_db)
 ):
     try:
@@ -24,10 +24,10 @@ async def save_git_auth(
             )
 
         # 判断token是否为空
-        if not token:
+        if not access_token:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="token不能为空"
+                detail="access_token不能为空"
             )
 
         # 判断user_id是否为空
@@ -42,7 +42,7 @@ async def save_git_auth(
             db,
             user_id,
             provider,
-            token
+            access_token
         )
         return GitAuthResponse.from_orm(git_auth)
         
