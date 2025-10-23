@@ -7,12 +7,14 @@ import logging
 from datetime import datetime
 from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, update
 from fastapi import UploadFile
 from app.config.settings import settings
 from app.domains.repo_mgmt.models.repository import RepoRecord
 from app.domains.repo_mgmt.schemes.repo_mgmt import CreateRepositoryFromUrl, UpdateRepository, RepositoryInfo
 from app.domains.repo_mgmt.services.git_service import GitService
+from app.domains.repo_mgmt.models.repository import ProcessingStatus
+from app.domains.repo_mgmt.tasks.clone_task import clone_repository_task
 
 
 class RepoMgmtService:
@@ -46,19 +48,10 @@ class RepoMgmtService:
             if existing_repo.scalar_one_or_none():
                 raise ValueError("仓库已存在")
 
-            # 克隆仓库到本地
+            # 创建本地路径
             local_repo_path = os.path.join(RepoMgmtService._get_base_storage_path(), repo_organization, repo_name)
-            git_info = await GitService.clone_repository(
-                session=session,
-                repository_url=create_data.repo_url,
-                local_repo_path=local_repo_path,
-                branch=create_data.branch,
-                user_id=user_id
-            )
-            if not git_info:
-                raise ValueError("克隆仓库失败")
-
-            # 创建仓库记录
+            
+            # 创建仓库记录，状态为等待克隆
             repository = RepoRecord(
                 id=str(uuid.uuid4()),
                 create_user_id=user_id,
@@ -68,13 +61,18 @@ class RepoMgmtService:
                 repo_name=repo_name,
                 repo_description=create_data.description,
                 repo_branch=create_data.branch,
-                local_path=git_info.local_path,
-                version=git_info.version,
+                local_path=local_repo_path,
+                processing_status=ProcessingStatus.INIT,
+                processing_progress=0,
+                processing_message="仓库已创建，等待开始克隆",
                 created_at=datetime.utcnow()
             )
             session.add(repository)
             await session.commit()
             await session.refresh(repository)
+            
+            # 启动异步克隆任务
+            clone_repository_task.delay(repository.id)
         
             logging.info(f"Created repository: {repository.repo_name} by user {user_id}")
             return repository
@@ -370,3 +368,40 @@ class RepoMgmtService:
         except Exception as e:
             logging.error(f"删除仓库失败: {e}")
             raise
+    
+    @staticmethod
+    async def update_repo_processing_status(
+        session: AsyncSession,
+        repo_id: str,
+        status: ProcessingStatus,
+        progress: int = None,
+        message: str = None,
+        error: str = None
+    ) -> bool:
+        """更新仓库处理状态"""
+        try:
+            update_data = {
+                "processing_status": status,
+                "updated_at": datetime.utcnow()
+            }
+            
+            if progress is not None:
+                update_data["processing_progress"] = progress
+            if message is not None:
+                update_data["processing_message"] = message
+            if error is not None:
+                update_data["processing_error"] = error
+            
+            result = await session.execute(
+                update(RepoRecord)
+                .where(RepoRecord.id == repo_id)
+                .values(**update_data)
+            )
+            
+            await session.commit()
+            return result.rowcount > 0
+            
+        except Exception as e:
+            logging.error(f"更新仓库克隆状态失败: {e}")
+            return False
+

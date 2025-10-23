@@ -1,7 +1,18 @@
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import Column, String, DateTime, Boolean, Text, Integer, ForeignKey
+from sqlalchemy import Column, String, DateTime, Boolean, Text, Integer, ForeignKey, Enum
 from sqlalchemy.orm import relationship
+import enum
+
+
+class ProcessingStatus(str, enum.Enum):
+    """处理状态枚举"""
+    INIT = "init"      # 初始化
+    CLONING = "cloning"      # 克隆中
+    CHUNKING = "chunking"    # 分块中
+    WIKI_GENERATING = "wiki_generating"  # 生成wiki中
+    COMPLETED = "completed"   # 完成
+    FAILED = "failed"        # 失败
 
 
 class RepoRecord:
@@ -23,11 +34,18 @@ class RepoRecord:
     local_path = Column(String, nullable=True, comment="本地路径")
     version = Column(String, nullable=True, comment="版本")
     
-    # 各种装填标志完成标志
-    is_embedded = Column(Boolean, default=False, comment="是否嵌入完成")
-    is_chunked = Column(Boolean, default=False, comment="是否嵌入完成")
+    # 处理状态
+    processing_status = Column(Enum(ProcessingStatus), default=ProcessingStatus.INIT, comment="处理状态")
+    processing_progress = Column(Integer, default=0, comment="处理进度(0-100)")
+    processing_message = Column(Text, comment="处理状态消息")
+    processing_error = Column(Text, comment="处理错误信息")
+    
+    # 各种任务完成标志
+    is_cloned = Column(Boolean, default=False, comment="是否克隆完成")
+    is_chunked = Column(Boolean, default=False, comment="是否分块完成")
+    is_wiki_generated = Column(Boolean, default=False, comment="是否生成wiki完成")
 
-    # 时间�?
+    # 时间信息
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
     
@@ -46,8 +64,13 @@ class RepoRecord:
             "repo_branch": self.repo_branch,
             "local_path": self.local_path,
             "version": self.version,
-            "is_embedded": self.is_embedded,
+            "processing_status": self.processing_status.value if self.processing_status else None,
+            "processing_progress": self.processing_progress,
+            "processing_message": self.processing_message,
+            "processing_error": self.processing_error,
+            "is_cloned": self.is_cloned,
             "is_chunked": self.is_chunked,
+            "is_wiki_generated": self.is_wiki_generated,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None
         } 

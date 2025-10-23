@@ -157,11 +157,15 @@ class GitService:
             if access_token:
                 # 使用令牌认证
                 auth_url = repository_url.replace('https://', f'https://oauth2:{access_token}@')
+                logging.info(f"开始克隆仓库: {repository_url}")
                 repo = git.Repo.clone_from(auth_url, local_repo_path, **clone_options)
             else:
                 # 无认证信息，尝试克隆公开仓库
                 logging.info(f"无认证令牌，尝试克隆公开仓库: {repository_url}")
                 repo = git.Repo.clone_from(repository_url, local_repo_path, **clone_options)
+            
+            # 克隆完成
+            logging.info(f"仓库克隆完成: {repository_url}")
             
             # 获取仓库信息
             head = repo.head
