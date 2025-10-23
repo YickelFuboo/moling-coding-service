@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 
 
 class WikiGenStatus:
-    """仓库状态枚�?""
+    """仓库状态枚举"""
     Pending = "pending"
     Processing = "processing"
     Completed = "completed"
@@ -24,12 +24,12 @@ class RepoClassify:
     Documentation = "Documentation"
 
 class WikiDocument:
-    """支持嵌套的文档模�?""
+    """支持嵌架构文模型"""
     __tablename__ = "wiki_documents"
     
     id = Column(String, primary_key=True, index=True, comment="ID")
     
-    # 代码仓信�?
+    # 代码仓信息
     repo_id = Column(String, nullable=False, index=True, comment="代码仓对象库ID")    
     path = Column(String, default="", nullable=False, comment="本地地址")
     
@@ -38,7 +38,7 @@ class WikiDocument:
     
     # 代码仓wiki解析相关信息
     is_boot = Column(Boolean, default=False, comment="是否嵌入完成")   
-    # 代码仓分类，信息，boot Document需要记�?
+    # 代码仓分类，信息，boot Document需要记录
     repo_classify = Column(String, nullable=True, comment="分类") 
 
     # 文档基本信息
@@ -48,16 +48,16 @@ class WikiDocument:
     optimized_directory_struct = Column(Text, nullable=True, comment="优化目录结构")
     readme_content = Column(Text, nullable=True, comment="README内容")
 
-    # 状态信�?
-    status = Column(String, default=WikiGenStatus.Pending, nullable=False, comment="文档状�?)
+    # 状态信息
+    status = Column(String, default=WikiGenStatus.Pending, nullable=False, comment="文档状态")
     error = Column(Text, nullable=True, comment="错误信息")
 
     # 统计信息
-    last_update = Column(DateTime, default=datetime.utcnow, nullable=False, comment="最后更新时�?)
-    like_count = Column(Integer, default=0, nullable=False, comment="浏览�?)
-    comment_count = Column(Integer, default=0, nullable=False, comment="评论�?)
+    last_update = Column(DateTime, default=datetime.utcnow, nullable=False, comment="最后更新时间")
+    like_count = Column(Integer, default=0, nullable=False, comment="浏览量")
+    comment_count = Column(Integer, default=0, nullable=False, comment="评论量")
     
-    # 时间�?
+    # 时间信息
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, comment="创建时间")
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False, comment="更新时间")
     
@@ -69,7 +69,6 @@ class WikiDocument:
     overview = relationship("DocumentOverview", back_populates="wiki_document", uselist=False, cascade="all, delete-orphan")
     
     def to_dict(self, include_children=False):
-        """转换为字�?""
         result = {
             "id": self.id,
             "repo_id": self.repo_id,
@@ -106,7 +105,7 @@ class WikiDocument:
         return self.path
     
     def get_ancestors(self):
-        """获取所有祖先节�?""
+        """获取所有祖先节点"""
         ancestors = []
         current = self.parent
         while current:
@@ -115,7 +114,7 @@ class WikiDocument:
         return ancestors
     
     def get_descendants(self):
-        """获取所有后代节�?""
+        """获取所有后代节点"""
         descendants = []
         for child in self.children:
             descendants.append(child)
@@ -127,7 +126,7 @@ class WikiDocument:
         return self.parent_id is None
     
     def is_leaf(self):
-        """是否为叶子节�?""
+        """是否为叶子节点"""
         return len(self.children) == 0
     
     def __repr__(self):
