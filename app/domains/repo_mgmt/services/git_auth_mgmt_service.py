@@ -4,10 +4,10 @@ from datetime import datetime
 from typing import List, Optional
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
-from ..models.git_auths import GitAuth
+from ..models.git_authority import GitAuthority
 
 
-class GitAuthService:
+class GitAuthMgmtService:
     """Git认证信息服务"""
         
     @staticmethod
@@ -15,13 +15,13 @@ class GitAuthService:
         """保存Git认证信息"""
         try:
             # 检查是否已存在
-            existing_auth = await GitAuthService.get_user_git_auth(session, user_id, provider)
+            existing_auth = await GitAuthMgmtService.get_user_git_auth(session, user_id, provider)
             
             if existing_auth:
                 # 更新现有记录
                 await session.execute(
-                    update(GitAuth)
-                    .where(GitAuth.id == existing_auth.id)
+                    update(GitAuthority)
+                    .where(GitAuthority.id == existing_auth.id)
                     .values(
                         access_token=access_token,
                         updated_at=datetime.utcnow()
@@ -33,7 +33,7 @@ class GitAuthService:
                 return existing_auth    
             else:
                 # 创建新记录
-                git_auth = GitAuth(
+                git_auth = GitAuthority(
                     id=str(uuid.uuid4()),
                     user_id=user_id,
                     provider=provider,
@@ -56,14 +56,14 @@ class GitAuthService:
             raise
     
     @staticmethod
-    async def get_user_git_auth(session: AsyncSession, user_id: str, provider: str) -> Optional[GitAuth]:
+    async def get_user_git_auth(session: AsyncSession, user_id: str, provider: str) -> Optional[GitAuthority]:
         """获取用户特定提供商的Git认证信息"""
         try:
             result = await session.execute(
-                select(GitAuth).where(
-                    GitAuth.user_id == user_id,
-                    GitAuth.provider == provider,
-                    GitAuth.is_active == True
+                select(GitAuthority).where(
+                    GitAuthority.user_id == user_id,
+                    GitAuthority.provider == provider,
+                    GitAuthority.is_active == True
                 )
             )
             return result.scalar_one_or_none()
@@ -72,13 +72,13 @@ class GitAuthService:
             return None
 
     @staticmethod
-    async def get_user_git_auths(session: AsyncSession, user_id: str) -> List[GitAuth]:
+    async def get_user_git_auths(session: AsyncSession, user_id: str) -> List[GitAuthority]:
         """获取用户的所有Git认证信息"""
         try:
             result = await session.execute( 
-                select(GitAuth).where(
-                    GitAuth.user_id == user_id,
-                    GitAuth.is_active == True
+                select(GitAuthority).where(
+                    GitAuthority.user_id == user_id,
+                    GitAuthority.is_active == True
                 )
             )
             return result.scalars().all()
@@ -91,9 +91,9 @@ class GitAuthService:
         """删除Git认证信息"""
         try:
             result = await session.execute(
-                delete(GitAuth).where(
-                    GitAuth.user_id == user_id,
-                    GitAuth.provider == provider
+                delete(GitAuthority).where(
+                    GitAuthority.user_id == user_id,
+                    GitAuthority.provider == provider
                 )
             )
             await session.commit()

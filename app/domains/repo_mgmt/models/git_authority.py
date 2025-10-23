@@ -5,9 +5,9 @@ from sqlalchemy import Column, String, Boolean, DateTime, Index, Enum
 from sqlalchemy.orm import relationship
 
 
-class GitAuth():
+class GitAuthority():
     """用户Git认证信息模型"""
-    __tablename__ = "git_auths"
+    __tablename__ = "git_authorities"
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String(36), nullable=False, index=True)
@@ -25,10 +25,9 @@ class GitAuth():
     )
     
     def __repr__(self):
-        return f"<UserGitAuth(id={self.id}, user_id={self.user_id}, provider={self.provider})>"
+        return f"<UserGitAuthority(id={self.id}, user_id={self.user_id}, provider={self.provider})>"
     
     def to_dict(self):
-        """转换为字典"""
         return {
             "id": self.id,
             "user_id": self.user_id,
