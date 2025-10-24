@@ -5,7 +5,7 @@ from sqlalchemy import select, update
 from app.infrastructure.celery.app import celery_app
 from app.infrastructure.database.factory import get_db
 from app.domains.repo_mgmt.models.repository import RepoRecord, ProcessingStatus
-from app.domains.repo_mgmt.services.git_service import GitService
+from app.domains.repo_mgmt.services.remote_git_service import RemoteGitService
 
 
 @celery_app.task(bind=True)
@@ -37,7 +37,7 @@ def clone_repository_task(self, repo_id: str):
                 await session.commit()
                 
                 # 执行克隆操作（同步等待完成）
-                git_info = await GitService.clone_repository(
+                git_info = await RemoteGitService.clone_repository(
                     session=session,
                     repository_url=repo_record.repo_url,
                     local_repo_path=repo_record.local_path,

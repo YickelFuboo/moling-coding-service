@@ -38,7 +38,7 @@ class GitRepositoryInfo:
         }
 
 
-class GitService:
+class RemoteGitService:
     """Git服务"""
     # 根据git地址识别提供商
     @staticmethod
@@ -140,7 +140,7 @@ class GitService:
             # 从认证表获取令牌
             access_token = None
             try:
-                provider = GitService.get_git_provider(repository_url)
+                provider = RemoteGitService.get_git_provider(repository_url)
                 if provider:
                     git_auth = await GitAuthMgmtService.get_user_git_auth(session, user_id, provider)
                     if git_auth and git_auth.access_token:

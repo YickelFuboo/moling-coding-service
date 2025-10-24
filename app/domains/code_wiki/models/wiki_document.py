@@ -29,8 +29,8 @@ class WikiDocument:
     
     id = Column(String, primary_key=True, index=True, comment="ID")
     
-    # 代码仓信息
-    repo_id = Column(String, nullable=False, index=True, comment="代码仓对象库ID")    
+    # 代码仓信息 - 与RepoRecord建立外键关系
+    repo_id = Column(String, ForeignKey("repo_records.id"), nullable=False, index=True, comment="代码仓对象库ID")    
     path = Column(String, default="", nullable=False, comment="本地地址")
     
     # 嵌套关系
@@ -60,6 +60,9 @@ class WikiDocument:
     # 时间信息
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, comment="创建时间")
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False, comment="更新时间")
+    
+    # 与RepoRecord的关系
+    repo_record = relationship("RepoRecord", back_populates="wiki_documents")
     
     # 嵌套关系
     parent = relationship("WikiDocument", remote_side=[id], back_populates="children")

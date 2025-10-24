@@ -133,3 +133,43 @@ OS_PASSWORD=admin
 # =============================================================================
 # 仓库管理存储路径
 REPO_STORAGE_PATH=./repos
+ENABLE_CODE_DEPENDENCY_ANALYSIS=false
+
+# =============================================================================
+# 业务配置
+# =============================================================================
+# GitHub配置
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+GITHUB_TOKEN=your-github-token
+
+# Gitee配置
+GITEE_CLIENT_ID=your-gitee-client-id
+GITEE_CLIENT_SECRET=your-gitee-client-secret
+GITEE_TOKEN=your-gitee-token
+
+# Git配置
+GIT_PATH=./repositories
+GIT_USERNAME=your-git-username
+GIT_PASSWORD=your-git-password
+GIT_EMAIL=koalawiki@example.com 
+
+# Mem0配置
+MEM0_ENABLE_MEM0=false
+MEM0_MEM0_API_KEY=your-mem0-api-key
+MEM0_MEM0_ENDPOINT=https://api.mem0.ai
+
+# REPOWIKI文档配置
+REPOWIK_ENABLE_CODE_DEPENDENCY_ANALYSIS=true
+REPOWIK_ENABLE_INCREMENTAL_UPDATE=true
+REPOWIK_ENABLE_SMART_FILTER=true
+REPOWIK_CATALOGUE_FORMAT=compact
+REPOWIK_ENABLE_WAREHOUSE_FUNCTION_PROMPT_TASK=true
+REPOWIK_ENABLE_WAREHOUSE_DESCRIPTION_TASK=true
+REPOWIK_ENABLE_FILE_COMMIT=true
+REPOWIK_ENABLE_WAREHOUSE_COMMIT=true
+REPOWIK_REFINE_AND_ENHANCE_QUALITY=true
+REPOWIK_ENABLE_CODE_COMPRESSION=false
+REPOWIK_EXCLUDED_FILES=["*.log", "*.tmp", "node_modules"]
+REPOWIK_EXCLUDED_FOLDERS=["node_modules", ".git", "dist"]
+REPOWIK_GIT_PATH=./repositories

@@ -5,7 +5,6 @@ from sqlalchemy import select, update
 from app.infrastructure.celery.app import celery_app
 from app.infrastructure.database.factory import get_db
 from app.domains.repo_mgmt.models.repository import RepoRecord, ProcessingStatus
-# from app.domains.code_wiki.models.wiki_document import WikiDocument
 
 
 @celery_app.task(bind=True)
@@ -36,11 +35,6 @@ def generate_wiki_task(self, repo_id: str):
                 if not repo_record:
                     raise Exception(f"仓库 {repo_id} 不存在")
                 
-                # TODO: 创建wiki文档对象
-                # wiki_document = WikiDocument(...)
-                # session.add(wiki_document)
-                # await session.commit()
-                
                 logging.info(f"开始为仓库 {repo_record.repo_name} 生成wiki")
                 
                 # 更新进度
@@ -63,38 +57,20 @@ def generate_wiki_task(self, repo_id: str):
                 # 模拟分析过程
                 await asyncio.sleep(2)  # 模拟分析耗时
                 
-                # 更新wiki文档内容
-                sample_content = f"""
-# {repo_record.repo_name} 代码仓库文档
-
-## 仓库信息
-- 仓库名称: {repo_record.repo_name}
-- 组织: {repo_record.repo_organization}
-- 分支: {repo_record.repo_branch}
-- 版本: {repo_record.version}
-
-## 代码结构分析
-这里将包含自动生成的代码结构分析...
-
-## 主要功能模块
-这里将包含主要功能模块的分析...
-
-## API接口文档
-这里将包含API接口的文档...
-
-## 使用说明
-这里将包含使用说明...
-                """
-                
+                # 更新进度
                 await session.execute(
-                    update(WikiDocument)
-                    .where(WikiDocument.id == wiki_document.id)
+                    update(RepoRecord)
+                    .where(RepoRecord.id == repo_id)
                     .values(
-                        content=sample_content,
-                        status="completed",
+                        processing_progress=80,
+                        processing_message="代码分析完成，正在生成wiki内容",
                         updated_at=datetime.utcnow()
                     )
                 )
+                await session.commit()
+                
+                # 模拟生成wiki内容
+                await asyncio.sleep(1)  # 模拟生成耗时
                 
                 # 更新仓库状态为完成
                 await session.execute(

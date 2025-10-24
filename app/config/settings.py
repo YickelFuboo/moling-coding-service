@@ -1,7 +1,8 @@
 import os
-from typing import Optional
+import json
+from typing import Optional, List
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import Field, field_validator
 from app.utils.common import get_project_meta, get_project_base_directory
 
 
@@ -120,9 +121,49 @@ class Settings(BaseSettings):
     # =============================================================================
 
     # =============================================================================
+    # 业务配置 - Business Configuration
+    # =============================================================================
+    # GitHub配置
+    github_client_id: str = Field(default="your-github-client-id", description="GitHub客户端ID", env="GITHUB_CLIENT_ID")
+    github_client_secret: str = Field(default="your-github-client-secret", description="GitHub客户端密钥", env="GITHUB_CLIENT_SECRET")
+    github_token: str = Field(default="your-github-token", description="GitHub访问令牌", env="GITHUB_TOKEN")
+    
+    # Gitee配置
+    gitee_client_id: str = Field(default="your-gitee-client-id", description="Gitee客户端ID", env="GITEE_CLIENT_ID")
+    gitee_client_secret: str = Field(default="your-gitee-client-secret", description="Gitee客户端密钥", env="GITEE_CLIENT_SECRET")
+    gitee_token: str = Field(default="your-gitee-token", description="Gitee访问令牌", env="GITEE_TOKEN")
+    
+    # Git配置
+    git_path: str = Field(default="./repositories", description="Git仓库存储路径", env="GIT_PATH")
+    git_username: str = Field(default="your-git-username", description="Git用户名", env="GIT_USERNAME")
+    git_password: str = Field(default="your-git-password", description="Git密码", env="GIT_PASSWORD")
+    git_email: str = Field(default="koalawiki@example.com", description="Git邮箱", env="GIT_EMAIL")
+    
+    # Mem0配置
+    mem0_enable_mem0: bool = Field(default=False, description="是否启用Mem0", env="MEM0_ENABLE_MEM0")
+    mem0_api_key: str = Field(default="your-mem0-api-key", description="Mem0 API密钥", env="MEM0_MEM0_API_KEY")
+    mem0_endpoint: str = Field(default="https://api.mem0.ai", description="Mem0端点", env="MEM0_MEM0_ENDPOINT")
+    
+    # REPOWIKI文档配置
+    repowik_enable_code_dependency_analysis: bool = Field(default=True, description="是否启用代码依赖分析", env="REPOWIK_ENABLE_CODE_DEPENDENCY_ANALYSIS")
+    repowik_enable_incremental_update: bool = Field(default=True, description="是否启用增量更新", env="REPOWIK_ENABLE_INCREMENTAL_UPDATE")
+    repowik_enable_smart_filter: bool = Field(default=True, description="是否启用智能过滤", env="REPOWIK_ENABLE_SMART_FILTER")
+    repowik_catalogue_format: str = Field(default="compact", description="目录格式", env="REPOWIK_CATALOGUE_FORMAT")
+    repowik_enable_warehouse_function_prompt_task: bool = Field(default=True, description="是否启用仓库函数提示任务", env="REPOWIK_ENABLE_WAREHOUSE_FUNCTION_PROMPT_TASK")
+    repowik_enable_warehouse_description_task: bool = Field(default=True, description="是否启用仓库描述任务", env="REPOWIK_ENABLE_WAREHOUSE_DESCRIPTION_TASK")
+    repowik_enable_file_commit: bool = Field(default=True, description="是否启用文件提交", env="REPOWIK_ENABLE_FILE_COMMIT")
+    repowik_enable_warehouse_commit: bool = Field(default=True, description="是否启用仓库提交", env="REPOWIK_ENABLE_WAREHOUSE_COMMIT")
+    repowik_refine_and_enhance_quality: bool = Field(default=True, description="是否优化和提升质量", env="REPOWIK_REFINE_AND_ENHANCE_QUALITY")
+    repowik_enable_code_compression: bool = Field(default=False, description="是否启用代码压缩", env="REPOWIK_ENABLE_CODE_COMPRESSION")
+    repowik_excluded_files: str = Field(default='["*.log", "*.tmp", "node_modules"]', description="排除的文件列表(JSON格式)", env="REPOWIK_EXCLUDED_FILES")
+    repowik_excluded_folders: str = Field(default='["node_modules", ".git", "dist"]', description="排除的文件夹列表(JSON格式)", env="REPOWIK_EXCLUDED_FOLDERS")
+    repowik_git_path: str = Field(default="./repositories", description="REPOWIKI Git路径", env="REPOWIK_GIT_PATH")
+
+    # =============================================================================
     # 仓库管理配置 - Repository Management
     # =============================================================================
     repo_storage_path: str = Field(default="./repos", description="代码仓存储路径", env="REPO_STORAGE_PATH")
+    enable_code_dependency_analysis: bool = Field(default=False, description="是否启用代码依赖分析", env="ENABLE_CODE_DEPENDENCY_ANALYSIS")
     
     class Config:
         env_file = "env"
@@ -138,12 +179,43 @@ class Settings(BaseSettings):
         else:
             return "sqlite+aiosqlite:///./koalawiki.db"
     
+    @field_validator('repowik_excluded_files', 'repowik_excluded_folders')
+    @classmethod
+    def validate_json_list(cls, v):
+        """验证JSON格式的列表配置"""
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                return []
+        return v
+    
     @property
     def redis_url(self) -> str:
         """生成Redis连接URL"""
         if self.redis_password:
             return f"redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/{self.redis_db}"
         return f"redis://{self.redis_host}:{self.redis_port}/{self.redis_db}"
+    
+    @property
+    def repowik_excluded_files_list(self) -> List[str]:
+        """获取排除文件列表"""
+        if isinstance(self.repowik_excluded_files, str):
+            try:
+                return json.loads(self.repowik_excluded_files)
+            except json.JSONDecodeError:
+                return []
+        return self.repowik_excluded_files
+    
+    @property
+    def repowik_excluded_folders_list(self) -> List[str]:
+        """获取排除文件夹列表"""
+        if isinstance(self.repowik_excluded_folders, str):
+            try:
+                return json.loads(self.repowik_excluded_folders)
+            except json.JSONDecodeError:
+                return []
+        return self.repowik_excluded_folders
 
 
 # 全局配置实例

@@ -49,6 +49,9 @@ class RepoRecord:
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
     
+    # 与WikiDocument的关系
+    wiki_documents = relationship("WikiDocument", back_populates="repo_record", cascade="all, delete-orphan")
+    
     # 关联关系
     commit_records = relationship("DocumentCommitRecord", back_populates="repo_record", cascade="all, delete-orphan")
     

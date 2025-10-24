@@ -12,7 +12,7 @@ from fastapi import UploadFile
 from app.config.settings import settings
 from app.domains.repo_mgmt.models.repository import RepoRecord
 from app.domains.repo_mgmt.schemes.repo_mgmt import CreateRepositoryFromUrl, UpdateRepository, RepositoryInfo
-from app.domains.repo_mgmt.services.git_service import GitService
+from app.domains.repo_mgmt.services.remote_git_service import RemoteGitService
 from app.domains.repo_mgmt.models.repository import ProcessingStatus
 from app.domains.repo_mgmt.tasks.clone_task import clone_repository_task
 
@@ -33,8 +33,8 @@ class RepoMgmtService:
             await RepoMgmtService._validate_url_repository(create_data.repo_url)
             
             # 从URL解析仓库信息
-            provider = GitService.get_git_provider(create_data.repo_url)
-            repo_organization, repo_name = GitService.get_git_url_info(create_data.repo_url)
+            provider = RemoteGitService.get_git_provider(create_data.repo_url)
+            repo_organization, repo_name = RemoteGitService.get_git_url_info(create_data.repo_url)
             
             # 检查仓库是否已存在
             existing_repo = await session.execute(
@@ -335,7 +335,7 @@ class RepoMgmtService:
                     return
             
             # 使用GitService切换分支
-            success = GitService.checkout_branch(repository.local_path, new_branch)
+            success = RemoteGitService.checkout_branch(repository.local_path, new_branch)
             if success:
                 logging.info(f"Successfully switched repository {repository.repo_name} to branch {new_branch}")
             else:

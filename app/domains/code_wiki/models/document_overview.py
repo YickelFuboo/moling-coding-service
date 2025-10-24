@@ -12,7 +12,7 @@ class DocumentOverview:
     content = Column(Text, nullable=False, default="", comment="内容")
     title = Column(String(200), nullable=False, default="", comment="标题")
     
-    # 时间�?
+    # 时间信息
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, comment="创建时间")
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False, comment="更新时间")
     
@@ -20,7 +20,6 @@ class DocumentOverview:
     wiki_document = relationship("WikiDocument", back_populates="overview")
     
     def to_dict(self):
-        """转换为字�?""
         return {
             "id": self.id,
             "wiki_document_id": self.wiki_document_id,
